@@ -240,8 +240,9 @@ tts/
 # Cloud connection data
 .cloud/
 
-# Restore state
+# Restore state and entity registry
 .storage/core.restore_state
+.storage/core.entity_registry
 
 # Node-RED credentials
 flows_cred.json
@@ -307,6 +308,7 @@ do_backup() {
         --exclude='.cloud/' \
         --exclude='__pycache__/' \
         --exclude='.storage/core.restore_state' \
+        --exclude='.storage/core.entity_registry' \
         --exclude='OZW_Log.txt' \
         "$HA_CONFIG/" "$REPO_DIR/" 2>/dev/null || {
             log_warn "rsync had warnings, continuing..."

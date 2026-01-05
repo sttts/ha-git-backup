@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.5] - 2025-01-05
+
+### Changed
+
+- Exclude .storage/core.entity_registry by default
+
 ## [1.0.4] - 2025-01-05
 
 ### Fixed
