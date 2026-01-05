@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.3] - 2025-01-05
+
+### Fixed
+
+- Fixed Web UI API calls to use relative paths for ingress compatibility
+
 ## [1.0.2] - 2025-01-05
 
 ### Fixed

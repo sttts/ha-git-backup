@@ -530,7 +530,7 @@ class BackupHandler(http.server.BaseHTTPRequestHandler):
 
     <script>
         function updateStatus() {
-            fetch('/api/status')
+            fetch('api/status')
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('statusDot').className = 'status-dot ' + data.status;
@@ -548,7 +548,7 @@ class BackupHandler(http.server.BaseHTTPRequestHandler):
         }
 
         function loadSSHKey() {
-            fetch('/api/ssh-key')
+            fetch('api/ssh-key')
                 .then(r => r.text())
                 .then(key => {
                     document.getElementById('sshKey').innerHTML = key +
@@ -570,7 +570,7 @@ class BackupHandler(http.server.BaseHTTPRequestHandler):
             btn.disabled = true;
             btn.textContent = 'Running...';
 
-            fetch('/api/backup', { method: 'POST' })
+            fetch('api/backup', { method: 'POST' })
                 .then(r => r.json())
                 .then(() => {
                     setTimeout(updateStatus, 2000);
