@@ -1,0 +1,49 @@
+configuration:
+  repository_url:
+    name: Repository URL
+    description: Git repository URL (HTTPS or SSH). Example: https://github.com/user/repo.git or git@github.com:user/repo.git
+  branch:
+    name: Branch
+    description: Git branch to use for backups
+  username:
+    name: Username
+    description: Git username for HTTPS authentication (leave empty for SSH)
+  password:
+    name: Password / Token
+    description: Git password or personal access token for HTTPS authentication
+  ssh_key:
+    name: SSH Private Key
+    description: SSH private key for authentication (paste the entire key including BEGIN/END lines)
+  auto_generate_ssh_key:
+    name: Auto-generate SSH Key
+    description: Automatically generate an SSH key pair if not provided. The public key will be shown in the Web UI.
+  commit_message:
+    name: Commit Message
+    description: Template for commit messages. Use {date} for timestamp
+  commit_user_name:
+    name: Git User Name
+    description: Name to use for git commits
+  commit_user_email:
+    name: Git User Email
+    description: Email to use for git commits
+  backup_interval_hours:
+    name: Backup Interval (hours)
+    description: How often to automatically backup (0 to disable, 1-168 hours)
+  backup_on_start:
+    name: Backup on Start
+    description: Perform a backup when the add-on starts
+  watch_realtime:
+    name: Watch for Changes (Realtime)
+    description: Use inotify to watch for file changes and commit immediately (with debounce)
+  watch_debounce_seconds:
+    name: Watch Debounce (seconds)
+    description: Minimum time between realtime commits (5-300 seconds)
+  cron_schedule:
+    name: Cron Schedule
+    description: Optional cron expression for scheduled backups (e.g., "0 2 * * *" for 2 AM daily)
+  exclude_patterns:
+    name: Exclude Patterns
+    description: Additional file patterns to exclude from backup (gitignore syntax)
+  include_patterns:
+    name: Include Patterns
+    description: File patterns to include in backup

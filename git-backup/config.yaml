@@ -1,0 +1,96 @@
+name: Git Config Backup
+version: "1.0.0"
+slug: git_config_backup
+description: Automatically backup Home Assistant configuration to a Git repository
+url: "https://github.com/sttts/ha-git-backup"
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+startup: application
+boot: auto
+init: false
+
+# Map the Home Assistant config directory (read-only for safety)
+map:
+  - config:ro
+  - ssl:ro
+  - addons:ro
+
+# Persistent storage for git repo clone and SSH keys
+tmpfs: false
+
+options:
+  repository_url: ""
+  branch: "main"
+  username: ""
+  password: ""
+  ssh_key: ""
+  auto_generate_ssh_key: true
+  commit_message: "Automated backup: {date}"
+  commit_user_name: "Home Assistant"
+  commit_user_email: "homeassistant@local"
+  backup_interval_hours: 24
+  backup_on_start: true
+  watch_realtime: false
+  watch_debounce_seconds: 30
+  cron_schedule: ""
+  exclude_patterns:
+    - "*.db"
+    - "*.db-shm"
+    - "*.db-wal"
+    - "*.log"
+    - "home-assistant.log*"
+    - "OZW_Log.txt"
+    - "tts/*"
+    - ".storage/core.restore_state"
+    - "backups/*"
+    - ".cloud/*"
+  include_patterns:
+    - "*.yaml"
+    - "*.yml"
+    - "*.json"
+    - "*.js"
+    - "*.py"
+    - "*.sh"
+    - "scripts/*"
+    - "blueprints/*"
+    - "custom_components/*"
+    - "themes/*"
+    - "www/*"
+    - ".storage/lovelace*"
+
+schema:
+  repository_url: str?
+  branch: str
+  username: str?
+  password: password?
+  ssh_key: str?
+  auto_generate_ssh_key: bool
+  commit_message: str
+  commit_user_name: str
+  commit_user_email: email
+  backup_interval_hours: int(0,168)
+  backup_on_start: bool
+  watch_realtime: bool
+  watch_debounce_seconds: int(5,300)
+  cron_schedule: str?
+  exclude_patterns:
+    - str
+  include_patterns:
+    - str
+
+# Enable Ingress for web UI to view SSH public key and status
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:git
+panel_title: Git Backup
+
+# Access to Home Assistant API for triggering via services
+homeassistant_api: true
+hassio_api: true
+
+# Labels
+image: "ghcr.io/sttts/ha-git-backup/{arch}"

@@ -1,0 +1,11 @@
+build_from:
+  armhf: ghcr.io/home-assistant/armhf-base:3.19
+  armv7: ghcr.io/home-assistant/armv7-base:3.19
+  aarch64: ghcr.io/home-assistant/aarch64-base:3.19
+  amd64: ghcr.io/home-assistant/amd64-base:3.19
+  i386: ghcr.io/home-assistant/i386-base:3.19
+labels:
+  org.opencontainers.image.title: "Git Config Backup"
+  org.opencontainers.image.description: "Automatically backup Home Assistant configuration to Git"
+  org.opencontainers.image.source: "https://github.com/sttts/ha-git-backup"
+  org.opencontainers.image.licenses: "MIT"
