@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] - 2025-01-05
+
+### Fixed
+
+- Fixed copy button with fallback for non-secure contexts
+
 ## [1.0.3] - 2025-01-05
 
 ### Fixed

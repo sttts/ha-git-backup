@@ -557,12 +557,43 @@ class BackupHandler(http.server.BaseHTTPRequestHandler):
         }
 
         function copyKey() {
-            const keyText = document.getElementById('sshKey').textContent.replace('Copy', '').trim();
-            navigator.clipboard.writeText(keyText).then(() => {
-                const btn = document.querySelector('.copy-btn');
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = 'Copy', 2000);
-            });
+            const keyEl = document.getElementById('sshKey');
+            const keyText = keyEl.textContent.replace('Copy', '').trim();
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(keyText).then(() => {
+                    showCopied();
+                }).catch(() => {
+                    fallbackCopy(keyText);
+                });
+            } else {
+                fallbackCopy(keyText);
+            }
+        }
+
+        function fallbackCopy(text) {
+            // Fallback: create temporary textarea
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showCopied();
+            } catch (e) {
+                // Last resort: select the text for manual copy
+                alert('Press Ctrl+C / Cmd+C to copy:\\n\\n' + text);
+            }
+            document.body.removeChild(ta);
+        }
+
+        function showCopied() {
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
         }
 
         function triggerBackup() {
