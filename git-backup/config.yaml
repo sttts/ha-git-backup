@@ -31,7 +31,7 @@ options:
   auto_generate_ssh_key: true
   commit_message: "Automated backup: {date}"
   commit_user_name: "Home Assistant"
-  commit_user_email: "homeassistant@local"
+  commit_user_email: ""
   backup_interval_hours: 24
   backup_on_start: true
   watch_realtime: false
@@ -71,7 +71,7 @@ schema:
   auto_generate_ssh_key: bool
   commit_message: str
   commit_user_name: str
-  commit_user_email: email
+  commit_user_email: str
   backup_interval_hours: int(0,168)
   backup_on_start: bool
   watch_realtime: bool
