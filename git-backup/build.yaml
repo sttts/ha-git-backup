@@ -8,4 +8,4 @@ labels:
   org.opencontainers.image.title: "Git Config Backup"
   org.opencontainers.image.description: "Automatically backup Home Assistant configuration to Git"
   org.opencontainers.image.source: "https://github.com/sttts/ha-git-backup"
-  org.opencontainers.image.licenses: "MIT"
+  org.opencontainers.image.licenses: "Apache-2.0"

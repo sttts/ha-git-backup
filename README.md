@@ -1,5 +1,7 @@
 # Home Assistant Git Config Backup
 
+[![Build and Publish](https://github.com/sttts/ha-git-backup/actions/workflows/build.yaml/badge.svg)](https://github.com/sttts/ha-git-backup/actions/workflows/build.yaml)
+
 Home Assistant add-on that automatically commits your configuration files to a Git repository with SSH key generation, real-time file watching, and a web UI for setup.
 
 ## Features
@@ -62,4 +64,4 @@ See [full documentation](git-backup/DOCS.md) for all options.
 
 ## License
 
-MIT
+Apache License 2.0

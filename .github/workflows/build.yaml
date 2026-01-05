@@ -75,7 +75,7 @@ jobs:
             org.opencontainers.image.description=Home Assistant add-on for Git-based config backup
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.version=${{ steps.meta.outputs.version }}
-            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.licenses=Apache-2.0
             io.hass.name=Git Config Backup
             io.hass.description=Automatically backup Home Assistant configuration to Git
             io.hass.type=addon
