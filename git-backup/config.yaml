@@ -18,6 +18,7 @@ map:
   - config:ro
   - ssl:ro
   - addons:ro
+  - share:rw
 
 # Persistent storage for git repo clone and SSH keys
 tmpfs: false

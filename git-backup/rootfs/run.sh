@@ -130,13 +130,17 @@ EOF
     ssh-keyscan -t ed25519,rsa gitlab.com >> /root/.ssh/known_hosts 2>/dev/null || true
     ssh-keyscan -t ed25519,rsa bitbucket.org >> /root/.ssh/known_hosts 2>/dev/null || true
 
-    # Display public key
+    # Display and export public key
     if [ -f "$pub_file" ]; then
         log_info "=============================================="
         log_info "SSH PUBLIC KEY (add this to your Git provider):"
         log_info "=============================================="
         cat "$pub_file"
         log_info "=============================================="
+
+        # Copy to /share for easy access via File Editor
+        cp "$pub_file" /share/git_backup_ssh_key.pub
+        log_info "Public key also saved to: /share/git_backup_ssh_key.pub"
     fi
 }
 
