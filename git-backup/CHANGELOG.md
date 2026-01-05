@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2] - 2025-01-05
+
+### Fixed
+
+- Fixed Dockerfile chmod failing on non-existent directory
+- Fixed run.sh permissions
+
 ## [1.0.1] - 2025-01-05
 
 ### Added

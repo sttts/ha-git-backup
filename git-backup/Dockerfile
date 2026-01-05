@@ -17,7 +17,7 @@ RUN apk add --no-cache \
 COPY rootfs /
 
 # Make scripts executable
-RUN chmod a+x /run.sh /usr/local/bin/*
+RUN chmod a+x /run.sh
 
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
