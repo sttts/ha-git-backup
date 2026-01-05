@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.1] - 2025-01-05
+
+### Added
+
+- Git logo for add-on
+- SSH public key saved to /share/git_backup_ssh_key.pub
+- Web UI for viewing SSH key and triggering backups
+
+### Fixed
+
+- Removed invalid default email address
+
 ## [1.0.0] - 2025-01-05
 
 ### Added
