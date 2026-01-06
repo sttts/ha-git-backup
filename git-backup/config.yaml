@@ -1,5 +1,5 @@
 name: Git Config Backup
-version: "1.0.6"
+version: "1.0.7"
 slug: git_config_backup
 description: Automatically backup Home Assistant configuration to a Git repository
 url: "https://github.com/sttts/ha-git-backup"
@@ -46,8 +46,7 @@ options:
     - "home-assistant.log*"
     - "OZW_Log.txt"
     - "tts/*"
-    - ".storage/core.restore_state"
-    - ".storage/core.*_registry"
+    - ".storage/*"
     - "backups/*"
     - ".cloud/*"
   include_patterns:
@@ -62,7 +61,8 @@ options:
     - "custom_components/*"
     - "themes/*"
     - "www/*"
-    - ".storage/lovelace*"
+    - "!.storage/lovelace*"
+    - "!.storage/core.config"
 
 schema:
   repository_url: str?
