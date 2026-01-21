@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.10] - 2025-01-21
+
+### Changed
+
+- Comprehensive documentation rewrite with full configuration reference
+- Added example configurations for common use cases
+- Documented API endpoints, troubleshooting, and security considerations
+
 ## [1.0.9] - 2025-01-21
 
 ### Added

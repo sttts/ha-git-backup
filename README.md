@@ -42,13 +42,17 @@ Home Assistant add-on that automatically commits your configuration files to a G
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `repository_url` | (required) | Git repository URL (SSH or HTTPS) |
+| `repository_url` | *(required)* | Git repository URL (SSH or HTTPS) |
 | `branch` | `main` | Git branch |
 | `backup_interval_hours` | `24` | Hours between backups (0 to disable) |
+| `backup_on_start` | `true` | Backup when add-on starts |
 | `watch_realtime` | `false` | Commit on file changes (inotify) |
+| `watch_min_interval` | `30` | Minimum seconds between realtime commits |
+| `watch_max_interval` | `1800` | Max backoff interval (loop protection) |
 | `auto_generate_ssh_key` | `true` | Auto-generate SSH key pair |
+| `commit_message` | `Backup: {files}` | Template with `{date}` and `{files}` placeholders |
 
-See [full documentation](git-backup/DOCS.md) for all options.
+See [full documentation](git-backup/DOCS.md) for all options including authentication, exclude patterns, and examples.
 
 ## What Gets Backed Up?
 
