@@ -1,5 +1,5 @@
 name: Git Config Backup
-version: "1.0.12"
+version: "1.0.13"
 slug: git_config_backup
 description: Automatically backup Home Assistant configuration to a Git repository
 url: "https://github.com/sttts/ha-git-backup"
@@ -32,7 +32,7 @@ options:
   auto_generate_ssh_key: true
   commit_message: "Backup: {files}"
   commit_user_name: "Home Assistant"
-  commit_user_email: ""
+  commit_user_email: "homeassistant@local"
   backup_interval_hours: 24
   backup_on_start: true
   watch_realtime: false

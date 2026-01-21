@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.13] - 2025-01-21
+
+### Fixed
+
+- Fix git author identity: default `commit_user_email` to "homeassistant@local" instead of empty
+- Add fallback in shell script for empty name/email values
+
 ## [1.0.12] - 2025-01-21
 
 ### Fixed

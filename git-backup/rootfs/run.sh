@@ -181,9 +181,14 @@ setup_git_credentials() {
 setup_repository() {
     log_info "Setting up repository..."
 
-    # Configure git user
-    git config --global user.name "$COMMIT_USER_NAME"
-    git config --global user.email "$COMMIT_USER_EMAIL"
+    # Configure git user (with fallbacks for empty values)
+    local git_name="${COMMIT_USER_NAME:-Home Assistant}"
+    local git_email="${COMMIT_USER_EMAIL:-homeassistant@local}"
+    [ -z "$git_name" ] && git_name="Home Assistant"
+    [ -z "$git_email" ] && git_email="homeassistant@local"
+
+    git config --global user.name "$git_name"
+    git config --global user.email "$git_email"
     git config --global init.defaultBranch "$BRANCH"
     git config --global --add safe.directory "$REPO_DIR"
 
