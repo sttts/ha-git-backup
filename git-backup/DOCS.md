@@ -118,16 +118,22 @@ Enable real-time backups that trigger when files change:
 | `watch_realtime` | `false` | Enable inotify-based file watching for instant commits |
 | `watch_min_interval` | `30` | Minimum seconds between commits (5-300) |
 | `watch_max_interval` | `1800` | Maximum backoff interval in seconds (60-3600). Prevents commit loops |
+| `watch_burst_limit` | `5` | Allow this many rapid backups before backing off (1-50) |
 
-**How the backoff works:**
+**How the burst and backoff works:**
 
-When rapid file changes are detected (potential infinite loop), the interval increases by 1.5x each time:
+1. **Normal editing**: When you edit files, the add-on commits at `watch_min_interval` (default 30s)
+2. **Burst allowance**: If you make many quick edits, the first `watch_burst_limit` rapid backups (default 5) proceed normally
+3. **Backoff**: After exceeding the burst limit, the interval increases by 1.5x for each subsequent rapid backup:
+   ```
+   Backup 6:  30s × 1.5¹ = 45s
+   Backup 7:  30s × 1.5² = 68s
+   Backup 8:  30s × 1.5³ = 101s
+   ...continues up to watch_max_interval (30min)
+   ```
+4. **Reset**: After a calm period (4× min interval = 2 minutes by default), everything resets
 
-```
-30s → 45s → 68s → 101s → 152s → 228s → ... → 1800s (30min cap)
-```
-
-This prevents runaway commits if something keeps modifying files. The interval resets after a calm period.
+This design allows normal editing activity while preventing infinite commit loops if something keeps modifying files.
 
 ### File Patterns
 

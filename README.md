@@ -49,6 +49,7 @@ Home Assistant add-on that automatically commits your configuration files to a G
 | `watch_realtime` | `false` | Commit on file changes (inotify) |
 | `watch_min_interval` | `30` | Minimum seconds between realtime commits |
 | `watch_max_interval` | `1800` | Max backoff interval (loop protection) |
+| `watch_burst_limit` | `5` | Allow this many rapid backups before backoff |
 | `auto_generate_ssh_key` | `true` | Auto-generate SSH key pair |
 | `commit_message` | `Backup: {files}` | Template with `{date}` and `{files}` placeholders |
 

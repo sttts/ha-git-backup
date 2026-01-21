@@ -73,6 +73,7 @@ BACKUP_ON_START=$(get_config "backup_on_start" "true")
 WATCH_REALTIME=$(get_config "watch_realtime" "false")
 WATCH_MIN_INTERVAL=$(get_config "watch_min_interval" "30")
 WATCH_MAX_INTERVAL=$(get_config "watch_max_interval" "1800")
+WATCH_BURST_LIMIT=$(get_config "watch_burst_limit" "5")
 CRON_SCHEDULE=$(get_config "cron_schedule" "")
 
 # ------------------------------------------------------------------------------
@@ -388,7 +389,7 @@ do_backup() {
 # File Watcher (inotify)
 # ------------------------------------------------------------------------------
 start_file_watcher() {
-    log_info "Starting file watcher (min=${WATCH_MIN_INTERVAL}s, max=${WATCH_MAX_INTERVAL}s)..."
+    log_info "Starting file watcher (min=${WATCH_MIN_INTERVAL}s, max=${WATCH_MAX_INTERVAL}s, burst=${WATCH_BURST_LIMIT})..."
 
     local last_backup_time=0
     local current_interval=$WATCH_MIN_INTERVAL
@@ -409,22 +410,28 @@ start_file_watcher() {
         now=$(date +%s)
         local since_last=$((now - last_backup_time))
 
-        # Check if we're in a rapid backup loop
-        if [ "$last_backup_time" -gt 0 ] && [ "$since_last" -lt $((current_interval * 2)) ]; then
-            rapid_count=$((rapid_count + 1))
-            current_interval=$(awk "BEGIN {printf \"%.0f\", $WATCH_MIN_INTERVAL * (1.5 ^ $rapid_count)}")
-            if [ "$current_interval" -gt "$WATCH_MAX_INTERVAL" ]; then
-                current_interval=$WATCH_MAX_INTERVAL
-            fi
-            log_warn "Rapid changes detected, backing off to ${current_interval}s"
-        else
-            # Things calmed down, reset
-            rapid_count=0
-            current_interval=$WATCH_MIN_INTERVAL
-        fi
-
+        # Only trigger backup if enough time has passed
         if [ "$since_last" -ge "$current_interval" ]; then
-            log_info "File change detected: $filename ($event)"
+            log_info "Change detected: $filename ($event)"
+
+            # Check for rapid backup loop (backups within 2x min interval)
+            if [ "$last_backup_time" -gt 0 ] && [ "$since_last" -lt $((WATCH_MIN_INTERVAL * 2)) ]; then
+                rapid_count=$((rapid_count + 1))
+                # Only back off after exceeding burst limit
+                if [ "$rapid_count" -gt "$WATCH_BURST_LIMIT" ]; then
+                    local backoff_level=$((rapid_count - WATCH_BURST_LIMIT))
+                    current_interval=$(awk "BEGIN {printf \"%.0f\", $WATCH_MIN_INTERVAL * (1.5 ^ $backoff_level)}")
+                    if [ "$current_interval" -gt "$WATCH_MAX_INTERVAL" ]; then
+                        current_interval=$WATCH_MAX_INTERVAL
+                    fi
+                    log_warn "Burst limit exceeded ($rapid_count rapid backups), interval: ${current_interval}s"
+                fi
+            elif [ "$since_last" -ge $((WATCH_MIN_INTERVAL * 4)) ]; then
+                # Been quiet for a while, reset
+                rapid_count=0
+                current_interval=$WATCH_MIN_INTERVAL
+            fi
+
             last_backup_time=$now
 
             # Run backup in background to not block watcher

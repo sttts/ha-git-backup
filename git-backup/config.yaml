@@ -1,5 +1,5 @@
 name: Git Config Backup
-version: "1.0.10"
+version: "1.0.11"
 slug: git_config_backup
 description: Automatically backup Home Assistant configuration to a Git repository
 url: "https://github.com/sttts/ha-git-backup"
@@ -38,6 +38,7 @@ options:
   watch_realtime: false
   watch_min_interval: 30
   watch_max_interval: 1800
+  watch_burst_limit: 5
   cron_schedule: ""
   exclude_patterns:
     - "*.db"
@@ -80,6 +81,7 @@ schema:
   watch_realtime: bool
   watch_min_interval: int(5,300)
   watch_max_interval: int(60,3600)
+  watch_burst_limit: int(1,50)
   cron_schedule: str?
   exclude_patterns:
     - str

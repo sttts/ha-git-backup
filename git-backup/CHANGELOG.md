@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.11] - 2025-01-21
+
+### Added
+
+- `watch_burst_limit` option: allow N rapid backups before backing off (default 5)
+
+### Fixed
+
+- Backoff logic: only triggers after actual backup, not on every file event
+- Backoff now properly resets after calm period (4× min interval)
+
+### Changed
+
+- Improved log messages: shows filename in change detection
+
 ## [1.0.10] - 2025-01-21
 
 ### Changed

@@ -41,6 +41,9 @@ configuration:
   watch_max_interval:
     name: Maximum Interval (seconds)
     description: Maximum backoff interval to prevent commit loops (60-3600 seconds)
+  watch_burst_limit:
+    name: Burst Limit
+    description: Allow this many rapid backups before backing off (1-50). Normal editing triggers ~3-5 rapid saves
   cron_schedule:
     name: Cron Schedule
     description: Optional cron expression for scheduled backups (e.g., "0 2 * * *" for 2 AM daily)
