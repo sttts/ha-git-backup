@@ -71,7 +71,8 @@ COMMIT_USER_EMAIL=$(get_config "commit_user_email" "homeassistant@local")
 BACKUP_INTERVAL=$(get_config "backup_interval_hours" "24")
 BACKUP_ON_START=$(get_config "backup_on_start" "true")
 WATCH_REALTIME=$(get_config "watch_realtime" "false")
-WATCH_DEBOUNCE=$(get_config "watch_debounce_seconds" "30")
+WATCH_MIN_INTERVAL=$(get_config "watch_min_interval" "30")
+WATCH_MAX_INTERVAL=$(get_config "watch_max_interval" "1800")
 CRON_SCHEDULE=$(get_config "cron_schedule" "")
 
 # ------------------------------------------------------------------------------
@@ -387,9 +388,11 @@ do_backup() {
 # File Watcher (inotify)
 # ------------------------------------------------------------------------------
 start_file_watcher() {
-    log_info "Starting file watcher with ${WATCH_DEBOUNCE}s debounce..."
+    log_info "Starting file watcher (min=${WATCH_MIN_INTERVAL}s, max=${WATCH_MAX_INTERVAL}s)..."
 
-    local last_trigger=0
+    local last_backup_time=0
+    local current_interval=$WATCH_MIN_INTERVAL
+    local rapid_count=0
 
     inotifywait -m -r -e modify,create,delete,move \
         --exclude '(\.git|\.db|\.log|__pycache__|\.tmp)' \
@@ -404,11 +407,25 @@ start_file_watcher() {
 
         local now
         now=$(date +%s)
-        local diff=$((now - last_trigger))
+        local since_last=$((now - last_backup_time))
 
-        if [ $diff -ge "$WATCH_DEBOUNCE" ]; then
+        # Check if we're in a rapid backup loop
+        if [ "$last_backup_time" -gt 0 ] && [ "$since_last" -lt $((current_interval * 2)) ]; then
+            rapid_count=$((rapid_count + 1))
+            current_interval=$(awk "BEGIN {printf \"%.0f\", $WATCH_MIN_INTERVAL * (1.5 ^ $rapid_count)}")
+            if [ "$current_interval" -gt "$WATCH_MAX_INTERVAL" ]; then
+                current_interval=$WATCH_MAX_INTERVAL
+            fi
+            log_warn "Rapid changes detected, backing off to ${current_interval}s"
+        else
+            # Things calmed down, reset
+            rapid_count=0
+            current_interval=$WATCH_MIN_INTERVAL
+        fi
+
+        if [ "$since_last" -ge "$current_interval" ]; then
             log_info "File change detected: $filename ($event)"
-            last_trigger=$now
+            last_backup_time=$now
 
             # Run backup in background to not block watcher
             (sleep 2 && do_backup "inotify") &

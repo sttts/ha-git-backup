@@ -19,7 +19,7 @@ configuration:
     description: Automatically generate an SSH key pair if not provided. The public key will be shown in the Web UI.
   commit_message:
     name: Commit Message
-    description: Template for commit messages. Use {date} for timestamp
+    description: Template for commit messages. Use {date} for timestamp, {files} for changed file names
   commit_user_name:
     name: Git User Name
     description: Name to use for git commits
@@ -34,10 +34,13 @@ configuration:
     description: Perform a backup when the add-on starts
   watch_realtime:
     name: Watch for Changes (Realtime)
-    description: Use inotify to watch for file changes and commit immediately (with debounce)
-  watch_debounce_seconds:
-    name: Watch Debounce (seconds)
+    description: Use inotify to watch for file changes and commit automatically
+  watch_min_interval:
+    name: Minimum Interval (seconds)
     description: Minimum time between realtime commits (5-300 seconds)
+  watch_max_interval:
+    name: Maximum Interval (seconds)
+    description: Maximum backoff interval to prevent commit loops (60-3600 seconds)
   cron_schedule:
     name: Cron Schedule
     description: Optional cron expression for scheduled backups (e.g., "0 2 * * *" for 2 AM daily)

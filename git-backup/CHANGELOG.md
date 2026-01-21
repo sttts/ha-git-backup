@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.9] - 2025-01-21
+
+### Added
+
+- Exponential backoff for file watcher to prevent infinite commit loops
+- New config options: `watch_min_interval` (default 30s) and `watch_max_interval` (default 30min)
+
+### Changed
+
+- Renamed `watch_debounce_seconds` to `watch_min_interval`
+- When rapid changes are detected, interval doubles up to max (30min default)
+
 ## [1.0.8] - 2025-01-21
 
 ### Changed
