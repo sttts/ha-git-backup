@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.12] - 2025-01-21
+
+### Fixed
+
+- Mask SSH private key in UI (changed schema from `str` to `password`)
+
 ## [1.0.11] - 2025-01-21
 
 ### Added
