@@ -65,7 +65,7 @@ USERNAME=$(get_config "username" "")
 PASSWORD=$(get_config "password" "")
 SSH_KEY=$(get_config "ssh_key" "")
 AUTO_GENERATE_SSH_KEY=$(get_config "auto_generate_ssh_key" "true")
-COMMIT_MESSAGE=$(get_config "commit_message" "Automated backup: {date}")
+COMMIT_MESSAGE=$(get_config "commit_message" "Backup: {files}")
 COMMIT_USER_NAME=$(get_config "commit_user_name" "Home Assistant")
 COMMIT_USER_EMAIL=$(get_config "commit_user_email" "homeassistant@local")
 BACKUP_INTERVAL=$(get_config "backup_interval_hours" "24")
@@ -281,6 +281,34 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
+# File summary for commit messages
+# ------------------------------------------------------------------------------
+generate_file_summary() {
+    local max_files="${1:-3}"
+    local files
+    files=$(git diff --cached --name-only)
+
+    local count
+    count=$(echo "$files" | grep -c . || echo 0)
+
+    if [ "$count" -eq 0 ]; then
+        echo ""
+        return
+    fi
+
+    # Get basenames of first N files
+    local shown
+    shown=$(echo "$files" | head -n "$max_files" | xargs -I{} basename {} | paste -sd ', ')
+
+    local remaining=$((count - max_files))
+    if [ "$remaining" -gt 0 ]; then
+        echo "$shown (+$remaining more)"
+    else
+        echo "$shown"
+    fi
+}
+
+# ------------------------------------------------------------------------------
 # Sync and Commit
 # ------------------------------------------------------------------------------
 do_backup() {
@@ -326,11 +354,15 @@ do_backup() {
         return 0
     fi
 
-    # Create commit message with date
+    # Create commit message with date and file summary
     local date_str
     date_str=$(date '+%Y-%m-%d %H:%M:%S')
+    local file_summary
+    file_summary=$(generate_file_summary)
     local message
-    message=$(echo "$COMMIT_MESSAGE" | sed "s/{date}/$date_str/g")
+    message="$COMMIT_MESSAGE"
+    message="${message//\{date\}/$date_str}"
+    message="${message//\{files\}/$file_summary}"
 
     # Commit
     log_info "Committing changes..."

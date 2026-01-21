@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.8] - 2025-01-21
+
+### Changed
+
+- Improved commit messages: now include file names summary (e.g., "Backup: configuration.yaml, automations.yaml (+2 more)")
+- New `{files}` placeholder for commit message template
+- Default commit message changed from "Automated backup: {date}" to "Backup: {files}"
+
 ## [1.0.7] - 2025-01-05
 
 ### Changed
