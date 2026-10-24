@@ -139,8 +139,41 @@ This design allows normal editing activity while preventing infinite commit loop
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `exclude_patterns` | *(see below)* | Gitignore-style patterns for files to exclude |
-| `include_patterns` | *(see below)* | Patterns for files to include |
+| `exclude_patterns` | *(see below)* | Rsync patterns for files to exclude |
+| `include_patterns` | *(see below)* | Rsync allowlist; prefix a pattern with `!` for an explicit exception |
+
+Patterns are relative to `/config` and use rsync matching: `*.yaml` matches
+basenames at any depth, `/secrets.yaml` matches only the root file, `dir/*`
+matches immediate children, and `dir/***` selects an entire subtree.
+
+Selection order (first match wins):
+
+1. Git metadata (`.git`) is always excluded and the clone's metadata is protected.
+2. Explicit exceptions from `include_patterns` starting with `!`.
+3. `exclude_patterns`.
+4. Ordinary `include_patterns`.
+5. Remaining files are excluded when the ordinary include list is nonempty.
+   With no ordinary include patterns, all non-excluded files are backed up.
+
+For example, `exclude_patterns: ["zigbee2mqtt/state.json"]` wins over the
+ordinary `*.json` include. `include_patterns: ["*.yaml", "!esphome/secrets.yaml"]`
+can explicitly restore a file excluded by `esphome/*`. If an entire parent
+is excluded (such as `esphome/`), also include `!esphome/` so rsync can traverse
+it. A `!` in `exclude_patterns` has no special negation meaning.
+
+These options are the only file-selection policy. There are no hidden exclusions
+for credentials: `secrets.yaml`, `esphome/secrets.yaml`, and `flows_cred.json` can
+all be included. A `.gitignore` from `/config` is copied if selected, but does not
+override the add-on's filters. To back up that file, add `.gitignore` to includes.
+
+On the first backup after changing filters, previously tracked files that are
+now excluded are removed from the backup clone and the next commit. Originals
+in `/config` and older Git history remain intact. Review your filters before
+upgrading: `include_patterns`, which older versions ignored, now acts as an
+allowlist. Use an empty include list to select all non-excluded files.
+
+If rsync fails, the add-on reports an error without staging, committing, or
+pushing a partial sync. The next backup retries the sync.
 
 ## What Gets Backed Up?
 
@@ -148,7 +181,7 @@ This design allows normal editing activity while preventing infinite commit loop
 
 - Configuration files: `*.yaml`, `*.yml`, `*.json`
 - Scripts: `*.py`, `*.sh`, `*.js`
-- Directories: `scripts/`, `blueprints/`, `custom_components/`, `themes/`, `www/`
+- Selected paths under `scripts/`, `blueprints/`, `custom_components/`, `themes/`, `www/` (use `directory/***` to include every nested file)
 - Lovelace dashboards: `.storage/lovelace*`
 - Core config: `.storage/core.config`
 

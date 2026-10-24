@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Set a persistent fallback HOME before global Git configuration.
+- Apply configured includes and excludes to the actual rsync snapshot; remove stale tracked exclusions.
+- Replace generated .gitignore and hidden credential exclusions with documented filter precedence and explicit include exceptions.
+- Refuse to stage or commit after an unsuccessful sync.
+
+### Testing
+
+- Add isolated regression tests with temporary config trees and local Git remotes, plus Alpine CI.
+
 ## [1.0.13] - 2025-01-21
 
 ### Fixed

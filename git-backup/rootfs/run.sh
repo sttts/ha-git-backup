@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Supervisor may start the add-on without HOME. /data is persistent.
+export HOME="${HOME:-/data}"
+
 # ==============================================================================
 # Home Assistant Add-on: Git Config Backup
 # Main entry point
@@ -59,22 +62,24 @@ EOF
 # ------------------------------------------------------------------------------
 # Load configuration
 # ------------------------------------------------------------------------------
-REPOSITORY_URL=$(get_config "repository_url" "")
-BRANCH=$(get_config "branch" "main")
-USERNAME=$(get_config "username" "")
-PASSWORD=$(get_config "password" "")
-SSH_KEY=$(get_config "ssh_key" "")
-AUTO_GENERATE_SSH_KEY=$(get_config "auto_generate_ssh_key" "true")
-COMMIT_MESSAGE=$(get_config "commit_message" "Backup: {files}")
-COMMIT_USER_NAME=$(get_config "commit_user_name" "Home Assistant")
-COMMIT_USER_EMAIL=$(get_config "commit_user_email" "homeassistant@local")
-BACKUP_INTERVAL=$(get_config "backup_interval_hours" "24")
-BACKUP_ON_START=$(get_config "backup_on_start" "true")
-WATCH_REALTIME=$(get_config "watch_realtime" "false")
-WATCH_MIN_INTERVAL=$(get_config "watch_min_interval" "30")
-WATCH_MAX_INTERVAL=$(get_config "watch_max_interval" "1800")
-WATCH_BURST_LIMIT=$(get_config "watch_burst_limit" "5")
-CRON_SCHEDULE=$(get_config "cron_schedule" "")
+load_configuration() {
+    REPOSITORY_URL=$(get_config "repository_url" "")
+    BRANCH=$(get_config "branch" "main")
+    USERNAME=$(get_config "username" "")
+    PASSWORD=$(get_config "password" "")
+    SSH_KEY=$(get_config "ssh_key" "")
+    AUTO_GENERATE_SSH_KEY=$(get_config "auto_generate_ssh_key" "true")
+    COMMIT_MESSAGE=$(get_config "commit_message" "Backup: {files}")
+    COMMIT_USER_NAME=$(get_config "commit_user_name" "Home Assistant")
+    COMMIT_USER_EMAIL=$(get_config "commit_user_email" "homeassistant@local")
+    BACKUP_INTERVAL=$(get_config "backup_interval_hours" "24")
+    BACKUP_ON_START=$(get_config "backup_on_start" "true")
+    WATCH_REALTIME=$(get_config "watch_realtime" "false")
+    WATCH_MIN_INTERVAL=$(get_config "watch_min_interval" "30")
+    WATCH_MAX_INTERVAL=$(get_config "watch_max_interval" "1800")
+    WATCH_BURST_LIMIT=$(get_config "watch_burst_limit" "5")
+    CRON_SCHEDULE=$(get_config "cron_schedule" "")
+}
 
 # ------------------------------------------------------------------------------
 # SSH Key Management
@@ -215,76 +220,43 @@ setup_repository() {
 }
 
 # ------------------------------------------------------------------------------
-# Generate .gitignore
+# File selection
 # ------------------------------------------------------------------------------
-generate_gitignore() {
-    cat > "$REPO_DIR/.gitignore" << 'EOF'
-# Home Assistant Git Backup - Auto-generated .gitignore
+build_rsync_filters() {
+    local pattern
+    local -a includes=()
+    # Do not fall back to copying everything when configuration cannot be read.
+    if ! jq -e '
+        [.include_patterns // [], .exclude_patterns // []] |
+        all(.[]; type == "array" and
+            all(.[]; type == "string" and
+                (explode | all(.[]; . != 0 and . != 10 and . != 13))))
+    ' "$CONFIG_PATH" >/dev/null; then
+        log_error "Invalid backup filter configuration"
+        return 1
+    fi
+    RSYNC_FILTERS=(--filter='P .git/' --exclude='.git')
 
-# Database files
-*.db
-*.db-shm
-*.db-wal
-
-# Log files
-*.log
-home-assistant.log*
-OZW_Log.txt
-
-# Cache and temporary files
-__pycache__/
-*.py[cod]
-.cache/
-*.tmp
-
-# Backups
-backups/
-backup/
-
-# TTS cache
-tts/
-
-# Cloud connection data
-.cloud/
-
-# Storage - exclude all except lovelace dashboards and core.config
-.storage/*
-!.storage/lovelace*
-!.storage/core.config
-
-# Node-RED credentials
-flows_cred.json
-
-# ESPHome secrets
-esphome/secrets.yaml
-
-# Large media files
-*.mp4
-*.mp3
-*.wav
-*.avi
-*.mkv
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-EOF
-
-    # Add user-defined exclude patterns
-    echo "" >> "$REPO_DIR/.gitignore"
-    echo "# User-defined exclude patterns" >> "$REPO_DIR/.gitignore"
+    # Explicit exceptions precede excludes. Keep the existing !include convention.
     while IFS= read -r pattern; do
-        if [ -n "$pattern" ]; then
-            echo "$pattern" >> "$REPO_DIR/.gitignore"
+        [ -n "$pattern" ] || continue
+        if [[ "$pattern" == '!'* ]]; then
+            [ -n "${pattern:1}" ] && RSYNC_FILTERS+=("--include=${pattern:1}")
+        else
+            includes+=("--include=$pattern")
         fi
+    done < <(get_config_array "include_patterns")
+
+    while IFS= read -r pattern; do
+        [ -n "$pattern" ] && RSYNC_FILTERS+=("--exclude=$pattern")
     done < <(get_config_array "exclude_patterns")
+
+    # Traverse directories to find matching files. An empty include list means all
+    # non-excluded files; otherwise it is an allowlist.
+    if [ "${#includes[@]}" -gt 0 ]; then
+        RSYNC_FILTERS+=("${includes[@]}" --include='*/' --exclude='*')
+    fi
+    return 0
 }
 
 # ------------------------------------------------------------------------------
@@ -324,35 +296,25 @@ do_backup() {
     log_info "Starting backup (trigger: $trigger_source)..."
     update_status "running" "Backup in progress..."
 
-    cd "$REPO_DIR"
+    cd "$REPO_DIR" || return 1
 
-    # Generate/update .gitignore
-    generate_gitignore
-
-    # Sync configuration files using rsync
+    # Use one set of filters for the actual snapshot. Remove excluded files
+    # from the clone too, including files tracked by earlier versions.
+    if ! build_rsync_filters; then
+        update_status "error" "Invalid backup filter configuration"
+        return 1
+    fi
     log_info "Syncing configuration from $HA_CONFIG..."
+    if ! rsync -av --delete --delete-excluded "${RSYNC_FILTERS[@]}" \
+        "$HA_CONFIG/" "$REPO_DIR/"; then
+        log_error "Configuration sync failed; refusing to commit a partial backup"
+        update_status "error" "Configuration sync failed"
+        return 1
+    fi
 
-    rsync -av --delete \
-        --exclude='.git/' \
-        --exclude='*.db' \
-        --exclude='*.db-shm' \
-        --exclude='*.db-wal' \
-        --exclude='*.log' \
-        --exclude='home-assistant.log*' \
-        --exclude='tts/' \
-        --exclude='backups/' \
-        --exclude='.cloud/' \
-        --exclude='__pycache__/' \
-        --include='.storage/lovelace*' \
-        --include='.storage/core.config' \
-        --exclude='.storage/*' \
-        --exclude='OZW_Log.txt' \
-        "$HA_CONFIG/" "$REPO_DIR/" 2>/dev/null || {
-            log_warn "rsync had warnings, continuing..."
-        }
-
-    # Stage all changes
-    git add -A
+    # Selection is controlled by add-on options, including explicit secrets.
+    # A source .gitignore must not silently override that selection.
+    git add --force --all || return 1
 
     # Check if there are changes to commit
     if git diff --cached --quiet; then
@@ -373,7 +335,7 @@ do_backup() {
 
     # Commit
     log_info "Committing changes..."
-    git commit -m "$message"
+    git commit -m "$message" || return 1
 
     # Push
     log_info "Pushing to remote..."
@@ -746,6 +708,7 @@ check_manual_trigger() {
 # Main
 # ------------------------------------------------------------------------------
 main() {
+    load_configuration
     log_info "=== Git Config Backup Add-on ==="
     log_info "Repository: ${REPOSITORY_URL:-not configured}"
     log_info "Branch: $BRANCH"
@@ -835,5 +798,7 @@ cleanup() {
 }
 trap cleanup SIGTERM SIGINT
 
-# Run main
-main
+# Run main only when executed, so tests can source the backup functions.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main
+fi

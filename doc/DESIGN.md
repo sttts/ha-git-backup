@@ -101,7 +101,7 @@ The main entry point orchestrates all functionality:
 │    └── main_loop()          # Scheduled backups    │
 │                                                     │
 │  do_backup()                                        │
-│    ├── generate_gitignore() # Create .gitignore    │
+│    ├── build_rsync_filters() # Select snapshot    │
 │    ├── rsync                # Sync files           │
 │    ├── git add -A           # Stage changes        │
 │    ├── git commit           # Commit               │
@@ -223,7 +223,10 @@ Simple HTTP server for status and SSH key display:
 
 ### User-Configurable Exclusions
 
-Users can add patterns via `exclude_patterns` option using gitignore syntax.
+Users configure rsync patterns via `exclude_patterns` and `include_patterns`.
+See `git-backup/DOCS.md` for precedence, explicit `!` include exceptions, and
+migration behavior for previously tracked exclusions. No generated `.gitignore`
+is used; selection is applied directly during rsync.
 
 ### Secrets Handling
 

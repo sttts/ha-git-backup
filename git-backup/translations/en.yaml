@@ -49,7 +49,7 @@ configuration:
     description: Optional cron expression for scheduled backups (e.g., "0 2 * * *" for 2 AM daily)
   exclude_patterns:
     name: Exclude Patterns
-    description: Additional file patterns to exclude from backup (gitignore syntax)
+    description: Rsync patterns to exclude. Overrides ordinary includes; previously tracked matches are removed from the backup.
   include_patterns:
     name: Include Patterns
-    description: File patterns to include in backup
+    description: "Rsync allowlist (empty means all non-excluded files). Prefix with ! for explicit exceptions to excludes. Git metadata is always excluded."

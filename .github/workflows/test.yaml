@@ -1,0 +1,23 @@
+name: Backup regression tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test with the add-on's Alpine userspace
+        run: |
+          docker run --rm -v "$PWD:/work:ro" -w /work alpine:3.19 sh -ec '
+            apk add --no-cache bash git jq rsync python3
+            bash -n git-backup/rootfs/run.sh
+            PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
+          '
